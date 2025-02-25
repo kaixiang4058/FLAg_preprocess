@@ -5,4 +5,4 @@ The annotation is based on ALOVAS.
 
 ## Workflow
 ### MRCPS - pkl/feather prepare process
-![image](./readme_img/preprocess%20flow.png)
+![image](./readme_img/preprocess_workflow.png)
