@@ -170,17 +170,23 @@ def pruning(tifroot, maskroot, roiroot, save_path, name, datainfo, level, scale_
             markset.add(name)
 
     ## save result
-    #pkl format
-    with open(os.path.join(save_path, f"{name}.pkl"), 'wb') as f:
-        pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
-    #transfer dict format to dataframe
-    rows = []
-    for key, values in results.items():
-        for value in values:
-            rows.append({"key": key, "label": value[0], "coordinates": value[1]})        
-    results_df = pd.DataFrame(rows)
-    feather_path = os.path.join(save_path, f"{name}.feather")
-    results_df.to_feather(feather_path)
+    #skip non result
+    result_sum = 0
+    for r_v in results.values():
+        result_sum+=len(r_v)
+        
+    if result_sum>0: 
+        #pkl format
+        with open(os.path.join(save_path, f"{name}.pkl"), 'wb') as f:
+            pickle.dump(results, f, protocol=pickle.HIGHEST_PROTOCOL)
+        #transfer dict format to dataframe
+        rows = []
+        for key, values in results.items():
+            for value in values:
+                rows.append({"key": key, "label": value[0], "coordinates": value[1]})        
+        results_df = pd.DataFrame(rows)
+        feather_path = os.path.join(save_path, f"{name}.feather")
+        results_df.to_feather(feather_path)
 
 
     stat_result = {
