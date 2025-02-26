@@ -235,6 +235,7 @@ def getPatchDict(tifroot, datalist, save_path, patch_size, stride_size, level, s
         except:
             check_dict['error'].append(os.path.join(tifroot, dataname))
             continue
+
         width = slice.width
         height = slice.height
         datas = []
@@ -278,7 +279,7 @@ def execute(tifroot, maskroot, roiroot, save_path, \
             name, stat_result = pruning(tifroot, maskroot, roiroot, save_path, pk, datainfo_dict[pk], level, scale_level, processtype)
             total_stats[name] = stat_result
 
-    with open(os.path.join(save_path, "result_statistic.json"), 'w') as f:
+    with open(os.path.join(save_path, f"result_statistic_{processtype}.json"), 'w') as f:
         json.dump(total_stats, f)
 
     print('Done')
