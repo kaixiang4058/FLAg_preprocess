@@ -51,12 +51,15 @@ def filetering(data, img_region, roi_region, mask_region, img_slide_band, mask_s
     
     mask = None
     if processtype=='label':
-        if mask_region is not None:
+        if not (mask_region is None):
             maskdata = mask_region.fetch(data[1][0], data[1][1], patch_size, patch_size)
             mask = np.ndarray(buffer=maskdata, dtype=np.uint8, 
                             shape=[patch_size, patch_size, mask_slide_band])
         else:
             return False,None,None,None
+    elif processtype=='unlabel' and  not(mask_region is None):
+        return False,None,True,None
+
     #=> no_roi+mask+label, no_roi+unlabel, in_roi label+mask+label, not_entire_ori+unlabel
     patchdata = img_region.fetch(data[1][0], data[1][1], patch_size, patch_size)
     img = np.ndarray(buffer=patchdata, dtype=np.uint8, 
@@ -107,7 +110,7 @@ def filetering(data, img_region, roi_region, mask_region, img_slide_band, mask_s
         else:
             target = 'whole_frontground'
 
-    # if target=='whole_frontground':
+    # if target=='tissue_background' and processtype=='unlabel':
     #     cv2.imshow(target,img)
     #     cv2.waitKey(0)
    
@@ -174,7 +177,7 @@ def pruning(tifroot, maskroot, roiroot, save_path, name, datainfo, level, scale_
     result_sum = 0
     for r_v in results.values():
         result_sum+=len(r_v)
-        
+
     if result_sum>0: 
         #pkl format
         with open(os.path.join(save_path, f"{name}.pkl"), 'wb') as f:
