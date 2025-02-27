@@ -8,6 +8,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from itertools import repeat
 
+import argparse
 from time import perf_counter
 from functools import wraps
 import pyvips
@@ -120,12 +121,21 @@ def genMask(json_path, slide_path, mask_path, roi_path,uuid, disease_label):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--slide_path', default="./dataset/images/")
+    parser.add_argument('--json_path', default="./dataset/annotations/")
+    parser.add_argument('--save_path', default="./dataset/")
+    args = parser.parse_args()
 
+    slide_path = args.slide_path
+    json_path = args.json_path
+    mask_path = os.path.join(args.save_path, 'mask/')
+    roi_path = os.path.join(args.save_path, 'rois/')
 
-    slide_path = './dataset/images/'
-    json_path = './dataset/annotations/'
-    mask_path = './dataset/masks/'
-    roi_path = './dataset/rois/'
+    # slide_path = './dataset/images/'
+    # json_path = './dataset/annotations/'
+    # mask_path = './dataset/masks/'
+    # roi_path = './dataset/rois/'
     disease_label = {
                         "label_profile": [
                             {"name": "tumor", "value": 1},

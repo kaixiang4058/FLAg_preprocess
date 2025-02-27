@@ -10,7 +10,7 @@ from concurrent.futures import ProcessPoolExecutor
 from itertools import repeat
 import cv2
 import pandas as pd
-
+import argparse
 markset = set()
 
 def read_WSI(wsi_path, data_type, level):
@@ -286,12 +286,23 @@ def execute(tifroot, maskroot, roiroot, save_path, \
 
 
 if __name__ == '__main__':
-    saveroot = './dataset/pkl/'
-    os.makedirs(saveroot, exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tifroot', default="./dataset/images/")
+    parser.add_argument('--maskroot', default="./dataset/masks/")
+    parser.add_argument('--roiroot', default="./dataset/rois/")
+    parser.add_argument('--saveroot', default="./dataset/pkl/")
+    args = parser.parse_args()
     
-    tifroot = './dataset/images/'
-    maskroot = './dataset/masks/'
-    roiroot = './dataset/rois/'
+    tifroot = args.tifroot
+    maskroot = args.maskroot
+    roiroot = args.roiroot
+    saveroot = args.saveroot
+    
+    # tifroot = './dataset/images/'
+    # maskroot = './dataset/masks/'
+    # roiroot = './dataset/rois/'
+    # saveroot = './dataset/pkl/'
+    os.makedirs(saveroot, exist_ok=True)
 
     level = 0                                   # based page of tif (page trainset used )
     scale_level = 2                             # filter used page of tif (1 level drop twofold, but in svs 1 level drop fourfold)
