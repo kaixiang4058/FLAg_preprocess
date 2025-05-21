@@ -42,7 +42,7 @@ def filetering(data, img_region, roi_region, mask_region, img_slide_band, mask_s
         roiarea = np.ndarray(buffer=patchroi, dtype=np.uint8,
                              shape=[patch_size, patch_size, mask_slide_band])
         if np.average(roiarea) <1:  #out roi -> label skip
-            if processtype=='label':
+            if processtype=='label':        #--------------------------------
                 return False, None, True, None
         else:                       #in roi -> unlabel skip
             if processtype=='unlabel':
@@ -144,6 +144,8 @@ def pruning(tifroot, maskroot, roiroot, save_path, name, datainfo, level, scale_
         if os.path.exists(roipath):
             roi_slide = read_WSI(roipath, datainfo['data_type'], scale_level)
             roi_region = pyvips.Region.new(roi_slide)
+        else:
+            roi_region = None
 
     mask_region, mask_bands = None, None
     if not (maskroot is None):
@@ -289,7 +291,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--tifroot', default="./dataset/images/")
     parser.add_argument('--maskroot', default="./dataset/masks/")
-    parser.add_argument('--roiroot', default="./dataset/rois/")
+    parser.add_argument('--roiroot', default="./dataset/rois/") 
     parser.add_argument('--saveroot', default="./dataset/pkl/")
     args = parser.parse_args()
     
