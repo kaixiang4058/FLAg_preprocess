@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     slide_path = args.slide_path
     json_path = args.json_path
-    mask_path = os.path.join(args.save_path, 'mask/')
+    mask_path = os.path.join(args.save_path, 'masks/')
     roi_path = os.path.join(args.save_path, 'rois/')
 
     # slide_path = './dataset/images/'

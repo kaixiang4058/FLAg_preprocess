@@ -144,8 +144,7 @@ def pruning(tifroot, maskroot, roiroot, save_path, name, datainfo, level, scale_
         if os.path.exists(roipath):
             roi_slide = read_WSI(roipath, datainfo['data_type'], scale_level)
             roi_region = pyvips.Region.new(roi_slide)
-        else:
-            roi_region = None
+
 
     mask_region, mask_bands = None, None
     if not (maskroot is None):
