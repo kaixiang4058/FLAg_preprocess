@@ -18,7 +18,7 @@ opencv-python-headless      4.10.0.84
 pandas                      2.0.3
 ```
 
-#### how to use
+#### How to use
 gen mask and roi from image and annotation (need prepare images and annotations)
 ```
 python Gen_Mask_json.py
