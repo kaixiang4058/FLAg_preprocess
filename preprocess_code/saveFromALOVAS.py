@@ -2,6 +2,7 @@ import requests
 import re
 import os
 import argparse
+from tqdm import tqdm
 
 def download_file(url, save_path):
     """下載單一檔案並儲存到指定路徑。"""
@@ -11,9 +12,9 @@ def download_file(url, save_path):
         with open(save_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        print(f"檔案已儲存到 {save_path}")
+        print(f"File save to: {save_path}")
     except Exception as e:
-        print(f"下載失敗: {url}\n錯誤訊息: {e}")
+        print(f"Download failed: {url}\nError messenger: {e}")
 
 def parse_record(line):
     """解析一行紀錄，回傳tif_url, tif_filename, json_url, json_filename。"""
@@ -51,7 +52,8 @@ http://cos.twcc.ai/alovas-platform-image-bucket-4/image/fcb948df-d853-44ff-ba65-
     os.makedirs(img_folder, exist_ok=True)
     os.makedirs(label_folder, exist_ok=True)
 
-    for line in data_records.strip().split('\n'):
+    print('--Start to download from ALOVAS--')
+    for line in tqdm(data_records.strip().split('\n')):
         line = line.strip()
         if not line:
             continue
@@ -69,6 +71,8 @@ http://cos.twcc.ai/alovas-platform-image-bucket-4/image/fcb948df-d853-44ff-ba65-
             download_file(json_url, json_save_path)
         except Exception as e:
             print(f"處理紀錄時發生錯誤: {line}\n錯誤訊息: {e}")
+    
+    print('-- Finish download --')
 
 if __name__ == '__main__':
     main()

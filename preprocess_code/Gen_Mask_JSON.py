@@ -136,6 +136,7 @@ def genMask(json_path, slide_path, mask_path, roi_path, uuid, disease_label):
         return
     
     slide = pyvips.Image.new_from_file(tifpth)
+    slide_height, slide_width = slide.height, slide.width
 
     # 讀取 JSON 文件
     with open(annpth, 'r') as jsonfile:
@@ -144,7 +145,7 @@ def genMask(json_path, slide_path, mask_path, roi_path, uuid, disease_label):
     print(f'Saving {uuid} : {save_path}')
 
     # tumor mask
-    mask = np.zeros((slide.height, slide.width), dtype=np.uint8)
+    mask = np.zeros((slide_height, slide_width), dtype=np.uint8)
     print('start process')
     check_flag, mask = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=False)
     if check_flag:
@@ -152,7 +153,7 @@ def genMask(json_path, slide_path, mask_path, roi_path, uuid, disease_label):
         vips_img.tiffsave(save_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
 
     # roi mask
-    mask_roi = np.zeros((slide.height, slide.width), dtype=np.uint8)
+    mask_roi = np.zeros((slide_height, slide_width), dtype=np.uint8)
     check_roi_flag, mask_roi = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=True)
     if check_roi_flag:
         vips_img_roi = numpy2vips(mask_roi)
