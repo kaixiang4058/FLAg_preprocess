@@ -38,47 +38,6 @@ def numpy2vips(a):
     return vi
 
 
-# def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
-    
-#     label_profiles = disease_label['label_profile']
-#     annotations = ann_info['annotation']
-#     total_list = []
-
-#     for annotation in tqdm(annotations):
-#         #roi check
-#         if annotation['name'] == 'roi' and not is_roi:
-#             continue
-#         elif is_roi and annotation['name'] != 'roi':
-#             continue
-
-#         for label_type in label_profiles:
-#             if label_type['name'] == annotation['name']:
-#                 ann_value = label_type['value']
-
-#         coordinates = np.array(annotation['coordinates'], dtype=np.int32)
-
-#         # if len(coordinates) != 0:
-#         #     print(f't: {len(coordinates)}')
-#         points = []
-#         mask_temp = np.zeros(mask.shape)
-#         for region in coordinates:
-#             x = float(region[0])
-#             y = float(region[1])
-#             points.append([x, y])
-#         if len(points):
-#             pts = np.asarray([points], dtype=np.int32)
-#             cv2.fillPoly(mask_temp, pts, color=int(ann_value))
-#             total_list.append([ann_value, pts, np.sum(mask_temp)])
-#     total_list.sort(key=lambda l:l[2], reverse=True)
- 
-#     if len(total_list)==0:
-#         return False, mask
-#     print(mask.max())
-#     #check category
-#     for i in range(len(total_list)):
-#         cv2.fillPoly(mask, total_list[i][1], color= total_list[i][0])  
-#     return True, mask
-
 def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
     
     label_profiles = disease_label['label_profile']
@@ -98,26 +57,26 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
 
         coordinates = np.array(annotation['coordinates'], dtype=np.int32)
 
-        if len(coordinates) == 0:
-            continue
-        # 用 cv2.contourArea 直接計算多邊形面積，無需創建 mask_temp
-        area = cv2.contourArea(coordinates.reshape(-1, 2))  # 計算實際幾何面積
-        total_list.append({
-            'value': ann_value,
-            'coordinates': coordinates,
-            'area': area
-        })
-    
-    # 按面積降序排序
-    total_list.sort(key=lambda x: x['area'], reverse=True)
-
-    if not total_list:
+        # if len(coordinates) != 0:
+        #     print(f't: {len(coordinates)}')
+        points = []
+        mask_temp = np.zeros(mask.shape)
+        for region in coordinates:
+            x = float(region[0])
+            y = float(region[1])
+            points.append([x, y])
+        if len(points):
+            pts = np.asarray([points], dtype=np.int32)
+            cv2.fillPoly(mask_temp, pts, color=int(ann_value))
+            total_list.append([ann_value, pts, np.sum(mask_temp)])
+    total_list.sort(key=lambda l:l[2], reverse=True)
+ 
+    if len(total_list)==0:
         return False, mask
-
-    # 直接在主 mask 上繪製
-    for item in total_list:
-        cv2.fillPoly(mask, [item['coordinates']], color=item['value'])
-
+    print(mask.max())
+    #check category
+    for i in range(len(total_list)):
+        cv2.fillPoly(mask, total_list[i][1], color= total_list[i][0])  
     return True, mask
 
 
