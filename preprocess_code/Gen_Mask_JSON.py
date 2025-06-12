@@ -96,7 +96,11 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
             if label_type['name'] == annotation['name']:
                 ann_value = label_type['value']
 
-        coordinates = np.array(annotation['coordinates'], dtype=np.int32)
+        # alovas新舊格式判斷
+        if type(annotation['coordinates'][0]) is 'dict' and 'x' in annotation['coordinates'][0].keys():
+            coordinates = np.array([[pt['x'], pt['y']] for pt in annotation['coordinates']], dtype=np.int32)
+        else:
+            coordinates = np.array(annotation['coordinates'], dtype=np.int32)
 
         if len(coordinates) == 0:
             continue
