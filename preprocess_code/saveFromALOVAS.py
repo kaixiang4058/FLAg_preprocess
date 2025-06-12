@@ -30,8 +30,10 @@ def parse_record(line):
 def read_links(path=None, default_records=None):
     """從檔案或字串讀取所有紀錄，回傳字串。"""
     if path and os.path.exists(path):
+        print('read from files')
         with open(path, 'r', encoding='utf-8') as f:
             return f.read()
+    print('read from default')    
     return default_records or ''
 
 def main():
