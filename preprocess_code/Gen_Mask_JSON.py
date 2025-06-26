@@ -87,14 +87,24 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
 
     for annotation in tqdm(annotations):
         #roi check
-        if annotation['name'] == 'roi' and not is_roi:
+        if annotation['name'].lower() == 'roi' and not is_roi:
             continue
-        elif is_roi and annotation['name'] != 'roi':
+        elif is_roi and annotation['name'].lower() != 'roi':
             continue
 
+        
+        ann_value = 0
+        check_label_exist = False
         for label_type in label_profiles:
-            if label_type['name'] == annotation['name']:
+            if label_type['name'].lower() == annotation['name'].lower():
                 ann_value = label_type['value']
+                check_label_exist = True
+        if not check_label_exist:
+            print(f"check label type:{annotation['name'].lower()}")
+            
+            
+        if is_roi:
+            print(annotation['name'], ann_value)
 
         # alovas新舊格式判斷
         if type(annotation['coordinates'][0]) is dict and 'x' in annotation['coordinates'][0].keys():
@@ -105,7 +115,10 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
         if len(coordinates) == 0:
             continue
         # 用 cv2.contourArea 直接計算多邊形面積，無需創建 mask_temp
-        area = cv2.contourArea(coordinates.reshape(-1, 2))  # 計算實際幾何面積
+        if annotation['type']=="rectangle":
+            area = (coordinates[1][0]-coordinates[0][0])*(coordinates[1][1]-coordinates[0][1])
+        else:
+            area = cv2.contourArea(coordinates.reshape(-1, 2))  # 計算實際幾何面積
         total_list.append({
             'value': ann_value,
             'coordinates': coordinates,
@@ -114,24 +127,32 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
     
     # 按面積降序排序
     total_list.sort(key=lambda x: x['area'], reverse=True)
+    
+    
+    if is_roi:
+        print(total_list)
 
     if not total_list:
         return False, mask
 
     # 直接在主 mask 上繪製
     for item in total_list:
-        cv2.fillPoly(mask, [item['coordinates']], color=item['value'])
+        if annotation['type']=="rectangle":
+            cv2.rectangle(mask, item['coordinates'][0], item['coordinates'][1], item['value'], -1)
+        else:
+            cv2.fillPoly(mask, [item['coordinates']], color=item['value'])
 
     return True, mask
 
 
-def genMask(json_path, slide_path, mask_path, roi_path, uuid, disease_label):
+def genMask(json_path, slide_path, mask_path, roi_path, uuid, wsi_type, disease_label):
 
-    tifpth = os.path.join(slide_path, f"{uuid}.tif")
-    annpth = os.path.join(json_path, f"{uuid}.json")
-    save_path = os.path.join(mask_path, f"{uuid}.tif")
-    save_roi_path = os.path.join(roi_path, f"{uuid}.tif")
+    tifpth = os.path.join(slide_path, f"{uuid}{wsi_type}")
+    annpth = os.path.join(json_path, f"{uuid}json")
+    save_path = os.path.join(mask_path, f"{uuid}tif")
+    save_roi_path = os.path.join(roi_path, f"{uuid}tif")
 
+    print(tifpth)
     if not os.path.exists(tifpth):
         print(f"tifpth not match: {uuid}")
         return
@@ -149,16 +170,16 @@ def genMask(json_path, slide_path, mask_path, roi_path, uuid, disease_label):
     print(f'Saving {uuid} : {save_path}')
 
     # tumor mask
-    mask = np.zeros((slide_height, slide_width), dtype=np.uint8)
-    print('start process')
-    check_flag, mask = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=False)
-    if check_flag:
-        vips_img = numpy2vips(mask)
-        vips_img.tiffsave(save_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
+    # mask = np.zeros((slide_height, slide_width), dtype=np.uint8)
+    # print('start process')
+    # check_flag, mask = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=False)
+    # if check_flag:
+    #     vips_img = numpy2vips(mask)
+    #     vips_img.tiffsave(save_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
 
     # roi mask
     mask_roi = np.zeros((slide_height, slide_width), dtype=np.uint8)
-    check_roi_flag, mask_roi = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=True)
+    check_roi_flag, mask_roi = maskGenOrderMethod(mask_roi, ann_info, disease_label, is_roi=True)
     if check_roi_flag:
         vips_img_roi = numpy2vips(mask_roi)
         vips_img_roi.tiffsave(save_roi_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
@@ -181,12 +202,22 @@ if __name__ == '__main__':
     # json_path = './dataset/annotations/'
     # mask_path = './dataset/masks/'
     # roi_path = './dataset/rois/'
+    # disease_label = {
+    #                     "label_profile": [
+    #                         {"name": "tumor", "value": 1},
+    #                         {"name": "normal", "value": 0}
+    #                     ]
+    #                 }
     disease_label = {
                         "label_profile": [
-                            {"name": "tumor", "value": 1},
-                            {"name": "normal", "value": 0}
+                            {"name": "ROI", "value": 1},
+                            {"name": "Tumor", "value": 1},
+                            {"name": "normal", "value": 2},
+                            {"name": "Background", "value": 0},
+                            {"name": "inflammatory ", "value": 3},
                         ]
                     }
+
 
     os.makedirs(mask_path, exist_ok=True)
     os.makedirs(roi_path, exist_ok=True)
@@ -197,15 +228,18 @@ if __name__ == '__main__':
             continue
         # if '-' in file and file != '-f':
         #     files.append(file)
-        file_type = file[-len(file.split('.')[-1]):]
-        if file_type in ['tif','tiff','ndpi','svs','mrxs']:
-            files.append(file[:-4])
+        filetype = file[-len(file.split('.')[-1]):]
+        if filetype in ['tif','tiff','ndpi','svs','mrxs']:
+            files.append([file[:-len(file.split('.')[-1])], filetype])
+            
     print(len(files))
     print(len(os.listdir(slide_path)))
 
-    for file in files:
-        filename = file[:-len(file.split('.')[-1])]
+    for filename, filetype in files:
+        # filename = file[:-len(file.split('.')[-1])]
+        # filetype = file[-len(file.split('.')[-1]):]
+        print(filename, filetype)
         new_output_path = os.path.join(mask_path, f"{filename}.tif")
-        genMask(json_path, slide_path, mask_path, roi_path, file, disease_label)
+        genMask(json_path, slide_path, mask_path, roi_path, filename, filetype, disease_label)
 
 
