@@ -170,12 +170,12 @@ def genMask(json_path, slide_path, mask_path, roi_path, uuid, wsi_type, disease_
     print(f'Saving {uuid} : {save_path}')
 
     # tumor mask
-    # mask = np.zeros((slide_height, slide_width), dtype=np.uint8)
-    # print('start process')
-    # check_flag, mask = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=False)
-    # if check_flag:
-    #     vips_img = numpy2vips(mask)
-    #     vips_img.tiffsave(save_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
+    mask = np.zeros((slide_height, slide_width), dtype=np.uint8)
+    print('start process')
+    check_flag, mask = maskGenOrderMethod(mask, ann_info, disease_label, is_roi=False)
+    if check_flag:
+        vips_img = numpy2vips(mask)
+        vips_img.tiffsave(save_path, tile=True, compression='deflate', bigtiff=True, pyramid=True)
 
     # roi mask
     mask_roi = np.zeros((slide_height, slide_width), dtype=np.uint8)
