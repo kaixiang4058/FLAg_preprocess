@@ -96,15 +96,12 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
         ann_value = 0
         check_label_exist = False
         for label_type in label_profiles:
+            print(label_type['name'].lower(), annotation['name'].lower())
             if label_type['name'].lower() == annotation['name'].lower():
                 ann_value = label_type['value']
                 check_label_exist = True
         if not check_label_exist:
             print(f"check label type:{annotation['name'].lower()}")
-            
-            
-        if is_roi:
-            print(annotation['name'], ann_value)
 
         # alovas新舊格式判斷
         if type(annotation['coordinates'][0]) is dict and 'x' in annotation['coordinates'][0].keys():
@@ -114,6 +111,7 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
 
         if len(coordinates) == 0:
             continue
+            
         # 用 cv2.contourArea 直接計算多邊形面積，無需創建 mask_temp
         if annotation['type']=="rectangle":
             area = (coordinates[1][0]-coordinates[0][0])*(coordinates[1][1]-coordinates[0][1])
@@ -122,22 +120,19 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
         total_list.append({
             'value': ann_value,
             'coordinates': coordinates,
-            'area': area
+            'area': area,
+            'type': annotation['type']
         })
     
     # 按面積降序排序
     total_list.sort(key=lambda x: x['area'], reverse=True)
-    
-    
-    if is_roi:
-        print(total_list)
 
     if not total_list:
         return False, mask
 
     # 直接在主 mask 上繪製
     for item in total_list:
-        if annotation['type']=="rectangle":
+        if item['type']=="rectangle":
             cv2.rectangle(mask, item['coordinates'][0], item['coordinates'][1], item['value'], -1)
         else:
             cv2.fillPoly(mask, [item['coordinates']], color=item['value'])
@@ -211,10 +206,14 @@ if __name__ == '__main__':
     disease_label = {
                         "label_profile": [
                             {"name": "ROI", "value": 1},
-                            {"name": "Tumor", "value": 1},
-                            {"name": "normal", "value": 2},
                             {"name": "Background", "value": 0},
-                            {"name": "inflammatory ", "value": 3},
+                            {"name": "void", "value": 0},
+                            {"name": "Invasive", "value": 1},
+                            {"name": "In_situ", "value": 1},
+                            {"name": "tumor", "value": 1},
+                            {"name": "normal", "value": 0},
+                            {"name": "Benign", "value": 0},
+                            {"name": "necrosis", "value": 0},
                         ]
                     }
 

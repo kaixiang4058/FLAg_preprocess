@@ -50,14 +50,16 @@ def filetering(data, img_region, roi_region, mask_region, img_slide_band, mask_s
     #=> no_roi, in_roi+label, not_entire_ori+unlabel
     
     mask = None
+    mask_avg=0
     if processtype=='label':
         if not (mask_region is None):
             maskdata = mask_region.fetch(data[1][0], data[1][1], patch_size, patch_size)
             mask = np.ndarray(buffer=maskdata, dtype=np.uint8, 
                             shape=[patch_size, patch_size, mask_slide_band])
+            mask_avg = np.average(mask)
         else:
             return False,None,None,None
-    elif processtype=='unlabel' and  not(mask_region is None):
+    elif processtype=='unlabel' and  mask_avg!=0:
         return False,None,True,None
 
     #=> no_roi+mask+label, no_roi+unlabel, in_roi label+mask+label, not_entire_ori+unlabel
@@ -98,12 +100,12 @@ def filetering(data, img_region, roi_region, mask_region, img_slide_band, mask_s
         mark_check = True
 
     elif pix_sat_count < count_max and pix_sat_count > count_min:
-        if mask is not None and 1 in mask:            
+        if mask is not None and mask_avg!=0:            
             target = 'partial_tissue_wtarget'
         else:
             target = 'partial_tissue'
     elif pix_sat_count >= count_max:
-        if mask is None or 1 not in mask:
+        if mask is None or mask_avg==0:
             target = 'tissue_background'   
         elif 0 in mask:
             target = 'partial_frontground' 
@@ -140,17 +142,21 @@ def pruning(tifroot, maskroot, roiroot, save_path, name, datainfo, level, scale_
 
     roi_region = None
     if not (roiroot is None):
-        roipath = os.path.join(roiroot, f'{name}'+'.'+datainfo['data_type'])
+        roipath = os.path.join(roiroot, f'{name}'+'.'+'tif')
+        # roipath = os.path.join(roiroot, f'{name}'+'.'+datainfo['data_type'])
         if os.path.exists(roipath):
-            roi_slide = read_WSI(roipath, datainfo['data_type'], scale_level)
+            roi_slide = read_WSI(roipath, 'tif', scale_level)
+            # roi_slide = read_WSI(roipath, datainfo['data_type'], scale_level)
             roi_region = pyvips.Region.new(roi_slide)
 
 
     mask_region, mask_bands = None, None
     if not (maskroot is None):
-        maskpath = os.path.join(maskroot, f'{name}'+'.'+datainfo['data_type'])
+        maskpath = os.path.join(maskroot, f'{name}'+'.'+'tif')
+        # maskpath = os.path.join(maskroot, f'{name}'+'.'+datainfo['data_type'])
         if os.path.exists(maskpath):
-            mask_slide = read_WSI(maskpath, datainfo['data_type'], scale_level)
+            mask_slide = read_WSI(maskpath, 'tif', scale_level)
+            # mask_slide = read_WSI(maskpath, datainfo['data_type'], scale_level)
             mask_region = pyvips.Region.new(mask_slide)
             mask_bands = mask_slide.bands
 
