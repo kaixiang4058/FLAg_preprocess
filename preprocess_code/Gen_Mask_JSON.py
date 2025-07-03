@@ -96,7 +96,6 @@ def maskGenOrderMethod(mask, ann_info, disease_label, is_roi):
         ann_value = 0
         check_label_exist = False
         for label_type in label_profiles:
-            print(label_type['name'].lower(), annotation['name'].lower())
             if label_type['name'].lower() == annotation['name'].lower():
                 ann_value = label_type['value']
                 check_label_exist = True
